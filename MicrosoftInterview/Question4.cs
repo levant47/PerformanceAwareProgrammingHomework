@@ -24,6 +24,8 @@ public static class Question4
     {
         // x^2 + y^2 = r^2 -> y^2 = r^2 - x^2 -> y = sqrt(r^2 - x^2)
 
+        // TODO: there's no need to do left + right side separately because only the quarter-circle is unique
+
         // left side
         var nextY = 0;
         for (var x = -r; x < 0; x++)

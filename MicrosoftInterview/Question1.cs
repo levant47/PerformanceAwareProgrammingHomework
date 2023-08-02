@@ -1,9 +1,8 @@
 public class Question1Tests
 {
     [Test]
-    public void CopyRectWorks()
+    public void CopyRectWorksWithDifferentPitch()
     {
-        // note that source and destination have a different pitch
         var source = new byte[]
         {
             0, 0, 0, 0,
@@ -33,6 +32,39 @@ public class Question1Tests
             1, 2, 3,
             4, 5, 6,
             7, 8, 9,
+        }, destination);
+    }
+
+    [Test]
+    public void CopyRectWorksWithDifferentStartPosition()
+    {
+        var source = new byte[]
+        {
+            1, 2, 3, 0, 0, 0,
+            4, 5, 6, 0, 0, 0,
+            7, 8, 9, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+        };
+        var destination = new byte[source.Length];
+        Question1.CopyRect(
+            source,
+            /* source pitch: */ 6,
+            destination,
+            /* destination pitch */ 6,
+            /* source start x, y: */ 0, 0,
+            /* source end x, y: */ 3, 3,
+            /* destination start x, y: */ 3, 3
+        );
+        CollectionAssert.AreEqual(new byte[]
+        {
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 2, 3,
+            0, 0, 0, 4, 5, 6,
+            0, 0, 0, 7, 8, 9,
         }, destination);
     }
 }
