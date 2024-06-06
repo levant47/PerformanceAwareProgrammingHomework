@@ -1,5 +1,7 @@
 ﻿public class InstructionParser(byte[] source)
 {
+    public class ParsingException(string message) : Exception(message);
+
     private enum MovMode : byte
     {
         MemoryNoDisplacement = 0b00,
@@ -16,7 +18,9 @@
         var instructions = new List<Instruction>();
         while (!parser.IsDone())
         {
-            instructions.Add(parser.ParseInstruction());
+            try { instructions.Add(parser.ParseInstruction()); }
+            catch (Exception exception)
+            { throw new ParsingException($"Encountered an error parsing byte {parser._i}: {exception.Message}"); }
         }
         var result = new StringBuilder();
         foreach (var instruction in instructions)
