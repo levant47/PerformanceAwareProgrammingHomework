@@ -1,6 +1,6 @@
 ﻿public class InstructionParser(byte[] source)
 {
-    private enum MovMode
+    private enum MovMode : byte
     {
         MemoryNoDisplacement = 0b00,
         Memory8BitDisplacement = 0b01,
