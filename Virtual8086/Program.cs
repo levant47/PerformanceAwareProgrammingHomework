@@ -12,7 +12,7 @@
             try
             {
                 var firstDifferingByteIndex = Verify(testBinary);
-                if (firstDifferingByteIndex != null) { errorMessage = "first difference at byte {firstDifferingByteIndex}"; }
+                if (firstDifferingByteIndex != null) { errorMessage = $"first difference at byte {firstDifferingByteIndex}"; }
             }
             catch (Exception exception) { errorMessage = exception.Message; }
             if (errorMessage != null)
@@ -27,7 +27,7 @@
     private static int? Verify(string testBinaryPath)
     {
         var binarySource = File.ReadAllBytes(testBinaryPath);
-        var decoded = InstructionParser.DecodeInstructions(binarySource);
+        var decoded = string.Join('\n', InstructionParser.DecodeInstructions(binarySource));
         var newCompiledFilename = Guid.NewGuid().ToString();
         var newSourceFilename = $"{newCompiledFilename}.asm";
         File.WriteAllText(newSourceFilename, decoded);
