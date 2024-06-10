@@ -27,16 +27,22 @@
     private static int? Verify(string testBinaryPath)
     {
         var binarySource = File.ReadAllBytes(testBinaryPath);
-        var decoded = string.Join('\n', InstructionParser.DecodeInstructions(binarySource));
+        var decoded = "bits 16\n" + string.Join('\n', InstructionParser.DecodeInstructions(binarySource));
         var newCompiledFilename = Guid.NewGuid().ToString();
         var newSourceFilename = $"{newCompiledFilename}.asm";
         File.WriteAllText(newSourceFilename, decoded);
         Run(NasmPath, newSourceFilename);
         var newBinarySource = File.ReadAllBytes(newCompiledFilename);
+        var testSourcePath = testBinaryPath + ".asm";
+        var recompiledTestBinaryFilename = Guid.NewGuid().ToString();
+        Run(NasmPath, $"\"{testSourcePath}\" -o {recompiledTestBinaryFilename}");
+        var recompiledTestBinary = File.ReadAllBytes(recompiledTestBinaryFilename);
         File.Delete(newCompiledFilename);
         File.Delete(newSourceFilename);
-        var firstDifferingByteIndex = Enumerable.Range(0, binarySource.Length)
-            .FirstOrDefault(index => binarySource[index] != newBinarySource[index], -1);
+        File.Delete(recompiledTestBinaryFilename);
+        if (recompiledTestBinary.Length != newBinarySource.Length) { return Math.Min(recompiledTestBinary.Length, newBinarySource.Length); }
+        var firstDifferingByteIndex = Enumerable.Range(0, newBinarySource.Length)
+            .FirstOrDefault(index => recompiledTestBinary[index] != newBinarySource[index], -1);
         if (firstDifferingByteIndex == -1) { return null; }
         return firstDifferingByteIndex;
     }
