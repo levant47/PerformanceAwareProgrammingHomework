@@ -37,6 +37,8 @@ public enum InstructionType : byte
     MoveAccumulator16ToDirectAddress,
 }
 
+// TODO: combine Register8 and Register16 into a single struct
+
 public enum Register8 : byte
 {
     AL = 0b000,
@@ -81,8 +83,8 @@ public struct Instruction
     public Register16 SourceRegister16;
     public Register16 DestinationRegister16;
     public EffectiveAddressCalculation Address;
-    public ushort Immediate;
-    public ushort Displacement;
+    public short Immediate;
+    public short Displacement;
 
     public override string ToString() => Type switch
     {

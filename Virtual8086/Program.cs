@@ -1,6 +1,6 @@
 ﻿public static class Program
 {
-    private static readonly string DataFolderPath = $@"{AppDomain.CurrentDomain.BaseDirectory}Data";
+    private static readonly string DataFolderPath = $"{AppDomain.CurrentDomain.BaseDirectory}Data";
     private static readonly string NasmPath = $@"{DataFolderPath}\nasm.exe";
 
     public static void Main()
@@ -33,16 +33,11 @@
         File.WriteAllText(newSourceFilename, decoded);
         Run(NasmPath, newSourceFilename);
         var newBinarySource = File.ReadAllBytes(newCompiledFilename);
-        var testSourcePath = testBinaryPath + ".asm";
-        var recompiledTestBinaryFilename = Guid.NewGuid().ToString();
-        Run(NasmPath, $"\"{testSourcePath}\" -o {recompiledTestBinaryFilename}");
-        var recompiledTestBinary = File.ReadAllBytes(recompiledTestBinaryFilename);
         File.Delete(newCompiledFilename);
         File.Delete(newSourceFilename);
-        File.Delete(recompiledTestBinaryFilename);
-        if (recompiledTestBinary.Length != newBinarySource.Length) { return Math.Min(recompiledTestBinary.Length, newBinarySource.Length); }
+        if (binarySource.Length != newBinarySource.Length) { return Math.Min(binarySource.Length, newBinarySource.Length); }
         var firstDifferingByteIndex = Enumerable.Range(0, newBinarySource.Length)
-            .FirstOrDefault(index => recompiledTestBinary[index] != newBinarySource[index], -1);
+            .FirstOrDefault(index => binarySource[index] != newBinarySource[index], -1);
         if (firstDifferingByteIndex == -1) { return null; }
         return firstDifferingByteIndex;
     }

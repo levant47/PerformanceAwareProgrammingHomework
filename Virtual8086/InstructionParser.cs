@@ -16,7 +16,7 @@
         DirectAddress,
     }
 
-    private record InterpretedMovMode(InterpretedMovModeType Type, ushort Displacement);
+    private record InterpretedMovMode(InterpretedMovModeType Type, short Displacement);
 
     private int _i = 0;
 
@@ -166,8 +166,7 @@
         {
             var reg = GetBits(0, 3, byte1);
             var isWide = GetBit(3, byte1);
-            ushort data = Next();
-            if (isWide) { data = (ushort)((Next() << 8) | data); }
+            var data = isWide ? ParseSignedWord() : ParseSignedByte();
             if (isWide)
             {
                 return new()
@@ -196,8 +195,7 @@
             var rm = GetBits(0, 3, byte2);
 
             var interpretedMovMode = InterpretMovMode(mod, rm);
-            ushort data = Next();
-            if (isWide) { data = (ushort)((Next() << 8) | data); }
+            var data = isWide ? ParseSignedWord() : ParseSignedByte();
 
             return (isWide, interpretedMovMode) switch
             {
@@ -257,7 +255,7 @@
         else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.MoveMemoryToAccumulator)
         {
             var isWide = GetBit(0, byte1);
-            var address = NextWord();
+            var address = ParseSignedWord();
             return new()
             {
                 Type = isWide ? InstructionType.MoveDirectAddressToAccumulator16 : InstructionType.MoveDirectAddressToAccumulator8,
@@ -267,7 +265,7 @@
         else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.MoveAccumulatorToMemory)
         {
             var isWide = GetBit(0, byte1);
-            var address = NextWord();
+            var address = ParseSignedWord();
             return new()
             {
                 Type = isWide ? InstructionType.MoveAccumulator16ToDirectAddress : InstructionType.MoveAccumulator8ToDirectAddress,
@@ -280,18 +278,20 @@
     private InterpretedMovMode InterpretMovMode(MovMode mod, byte rm) => (mod, rm) switch
     {
         (MovMode.Register, _) => new(InterpretedMovModeType.Register, 0),
-        (MovMode.MemoryNoDisplacement, 0b110) => new(InterpretedMovModeType.DirectAddress, NextWord()),
+        (MovMode.MemoryNoDisplacement, 0b110) => new(InterpretedMovModeType.DirectAddress, ParseSignedWord()),
         (MovMode.MemoryNoDisplacement, _) => new(InterpretedMovModeType.AddressWithNoDisplacement, 0),
-        (MovMode.Memory8BitDisplacement, _) => new(InterpretedMovModeType.AddressWithDisplacement, Next()),
-        (MovMode.Memory16BitDisplacement, _) => new(InterpretedMovModeType.AddressWithDisplacement, NextWord()),
+        (MovMode.Memory8BitDisplacement, _) => new(InterpretedMovModeType.AddressWithDisplacement, ParseSignedByte()),
+        (MovMode.Memory16BitDisplacement, _) => new(InterpretedMovModeType.AddressWithDisplacement, ParseSignedWord()),
         _ => throw new(),
     };
 
-    private ushort NextWord()
+    private short ParseSignedByte() => (sbyte)Next();
+
+    private short ParseSignedWord()
     {
         var low = Next();
         var high = Next();
-        return (ushort)((high << 8) | low);
+        return (short)((high << 8) | low);
     }
 
     private static bool GetBit(int index, byte value) => GetBits(index, index + 1, value) == 1;
