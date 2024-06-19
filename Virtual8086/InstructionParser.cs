@@ -61,51 +61,59 @@
             {
                 (false, { Type: InterpretedMovModeType.Register }) => new()
                 {
-                    Type = InstructionType.MoveRegisterToRegister,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveRegisterToRegister,
                     DestinationRegister = new(isWide, rm),
                     SourceRegister = new(isWide, reg),
                 },
                 (true, { Type: InterpretedMovModeType.Register }) => new()
                 {
-                    Type = InstructionType.MoveRegisterToRegister,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveRegisterToRegister,
                     DestinationRegister = new(isWide, reg),
                     SourceRegister = new(isWide, rm),
                 },
                 (true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
-                    Type = InstructionType.MoveMemoryToRegister,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveMemoryToRegister,
                     DestinationRegister = new(isWide, reg),
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                 },
                 (false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
-                    Type = InstructionType.MoveRegisterToMemory,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveRegisterToMemory,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     SourceRegister= new(isWide, reg),
                 },
                 (true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveMemoryToRegisterWithDisplacement,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveMemoryToRegisterWithDisplacement,
                     DestinationRegister = new(isWide, reg),
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     Displacement = displacement,
                 },
                 (false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveRegisterToMemoryWithDisplacement,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveRegisterToMemoryWithDisplacement,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     SourceRegister = new(isWide, reg),
                     Displacement = displacement,
                 },
                 (true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveDirectAddressToRegister,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveDirectAddressToRegister,
                     DestinationRegister= new(isWide, reg),
                     Displacement = displacement,
                 },
                 (false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveRegisterToDirectAddress,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveRegisterToDirectAddress,
                     SourceRegister = new(isWide, reg),
                     Displacement = displacement,
                 },
@@ -119,7 +127,8 @@
             var data = isWide ? ParseSignedWord() : ParseSignedByte();
             return new()
             {
-                Type = InstructionType.MoveImmediateToRegister,
+                Type = InstructionType.MOV,
+                Operands = InstructionOperands.MoveImmediateToRegister,
                 DestinationRegister = new(isWide, reg),
                 Immediate = data,
             };
@@ -139,51 +148,59 @@
             {
                 (false, { Type: InterpretedMovModeType.Register }) => new()
                 {
-                    Type = InstructionType.MoveImmediateToRegister,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveImmediateToRegister,
                     Immediate = data,
                     DestinationRegister = new(isWide, rm),
                 },
                 (false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
-                    Type = InstructionType.MoveImmediate8ToMemory,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveImmediate8ToMemory,
                     Immediate = data,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                 },
                 (false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveImmediate8ToMemoryWithDisplacement,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveImmediate8ToMemoryWithDisplacement,
                     Immediate = data,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     Displacement = displacement,
                 },
                 (false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveImmediate8ToDirectAddress,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveImmediate8ToDirectAddress,
                     Immediate = data,
                     Displacement = displacement,
                 },
                 (true, { Type: InterpretedMovModeType.Register }) => new()
                 {
-                    Type = InstructionType.MoveImmediateToRegister,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveImmediateToRegister,
                     Immediate = data,
                     DestinationRegister = new(isWide, rm),
                 },
                 (true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
-                    Type = InstructionType.MoveImmediate16ToMemory,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveImmediate16ToMemory,
                     Immediate = data,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                 },
                 (true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveImmediate16ToMemoryWithDisplacement,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveImmediate16ToMemoryWithDisplacement,
                     Immediate = data,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     Displacement = displacement,
                 },
                 (true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveImmediate16ToDirectAddress,
+                    Type = InstructionType.MOV,
+                    Operands = InstructionOperands.MoveImmediate16ToDirectAddress,
                     Immediate = data,
                     Displacement = displacement,
                 },
@@ -196,7 +213,8 @@
             var address = ParseSignedWord();
             return new()
             {
-                Type = isWide ? InstructionType.MoveDirectAddressToAccumulator16 : InstructionType.MoveDirectAddressToAccumulator8,
+                Type = InstructionType.MOV,
+                Operands = isWide ? InstructionOperands.MoveDirectAddressToAccumulator16 : InstructionOperands.MoveDirectAddressToAccumulator8,
                 Displacement = address,
             };
         }
@@ -206,7 +224,8 @@
             var address = ParseSignedWord();
             return new()
             {
-                Type = isWide ? InstructionType.MoveAccumulator16ToDirectAddress : InstructionType.MoveAccumulator8ToDirectAddress,
+                Type = InstructionType.MOV,
+                Operands = isWide ? InstructionOperands.MoveAccumulator16ToDirectAddress : InstructionOperands.MoveAccumulator8ToDirectAddress,
                 Displacement = address,
             };
         }

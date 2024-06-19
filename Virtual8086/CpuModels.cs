@@ -7,7 +7,13 @@
     MoveAccumulatorToMemory = 0b1010001,
 }
 
-public enum InstructionType : byte
+public enum InstructionType
+{
+    MOV,
+    ADD,
+}
+
+public enum InstructionOperands : byte
 {
     MoveRegisterToRegister,
     MoveImmediateToRegister,
@@ -84,32 +90,33 @@ public enum EffectiveAddressCalculation
 public struct Instruction
 {
     public InstructionType Type;
+    public InstructionOperands Operands;
     public Register SourceRegister;
     public Register DestinationRegister;
     public EffectiveAddressCalculation Address;
     public short Immediate;
     public short Displacement;
 
-    public override string ToString() => Type switch
+    public override string ToString() => Operands switch
     {
-        InstructionType.MoveRegisterToRegister => $"mov {DestinationRegister.GetName()}, {SourceRegister.GetName()}",
-        InstructionType.MoveImmediateToRegister => $"mov {DestinationRegister.GetName()}, {Immediate}",
-        InstructionType.MoveMemoryToRegister => $"mov {DestinationRegister.GetName()}, [{EffectiveAddressCalculationToString(Address)}]",
-        InstructionType.MoveRegisterToMemory => $"mov [{EffectiveAddressCalculationToString(Address)}], {SourceRegister.GetName()}",
-        InstructionType.MoveMemoryToRegisterWithDisplacement => $"mov {DestinationRegister.GetName()}, [{EffectiveAddressCalculationToString(Address)} + {Displacement}]",
-        InstructionType.MoveRegisterToMemoryWithDisplacement => $"mov [{EffectiveAddressCalculationToString(Address)} + {Displacement}], {SourceRegister.GetName()}",
-        InstructionType.MoveImmediate8ToMemory => $"mov [{EffectiveAddressCalculationToString(Address)}], byte {Immediate}",
-        InstructionType.MoveImmediate8ToMemoryWithDisplacement => $"mov [{EffectiveAddressCalculationToString(Address)} + {Displacement}], byte {Immediate}",
-        InstructionType.MoveImmediate16ToMemory => $"mov [{EffectiveAddressCalculationToString(Address)}], word {Immediate}",
-        InstructionType.MoveImmediate16ToMemoryWithDisplacement => $"mov [{EffectiveAddressCalculationToString(Address)} + {Displacement}], word {Immediate}",
-        InstructionType.MoveImmediate8ToDirectAddress => $"mov [{Displacement}], byte {Immediate}",
-        InstructionType.MoveImmediate16ToDirectAddress => $"mov [{Displacement}], word {Immediate}",
-        InstructionType.MoveRegisterToDirectAddress => $"mov [{Displacement}], {SourceRegister.GetName()}",
-        InstructionType.MoveDirectAddressToRegister => $"mov {DestinationRegister.GetName()}, [{Displacement}]",
-        InstructionType.MoveDirectAddressToAccumulator8 => $"mov AL, [{Displacement}]",
-        InstructionType.MoveDirectAddressToAccumulator16 => $"mov AX, [{Displacement}]",
-        InstructionType.MoveAccumulator8ToDirectAddress => $"mov [{Displacement}], AL",
-        InstructionType.MoveAccumulator16ToDirectAddress => $"mov [{Displacement}], AX",
+        InstructionOperands.MoveRegisterToRegister => $"{Type} {DestinationRegister.GetName()}, {SourceRegister.GetName()}",
+        InstructionOperands.MoveImmediateToRegister => $"{Type} {DestinationRegister.GetName()}, {Immediate}",
+        InstructionOperands.MoveMemoryToRegister => $"{Type} {DestinationRegister.GetName()}, [{EffectiveAddressCalculationToString(Address)}]",
+        InstructionOperands.MoveRegisterToMemory => $"{Type} [{EffectiveAddressCalculationToString(Address)}], {SourceRegister.GetName()}",
+        InstructionOperands.MoveMemoryToRegisterWithDisplacement => $"{Type} {DestinationRegister.GetName()}, [{EffectiveAddressCalculationToString(Address)} + {Displacement}]",
+        InstructionOperands.MoveRegisterToMemoryWithDisplacement => $"{Type} [{EffectiveAddressCalculationToString(Address)} + {Displacement}], {SourceRegister.GetName()}",
+        InstructionOperands.MoveImmediate8ToMemory => $"{Type} [{EffectiveAddressCalculationToString(Address)}], byte {Immediate}",
+        InstructionOperands.MoveImmediate8ToMemoryWithDisplacement => $"{Type} [{EffectiveAddressCalculationToString(Address)} + {Displacement}], byte {Immediate}",
+        InstructionOperands.MoveImmediate16ToMemory => $"{Type} [{EffectiveAddressCalculationToString(Address)}], word {Immediate}",
+        InstructionOperands.MoveImmediate16ToMemoryWithDisplacement => $"{Type} [{EffectiveAddressCalculationToString(Address)} + {Displacement}], word {Immediate}",
+        InstructionOperands.MoveImmediate8ToDirectAddress => $"{Type} [{Displacement}], byte {Immediate}",
+        InstructionOperands.MoveImmediate16ToDirectAddress => $"{Type} [{Displacement}], word {Immediate}",
+        InstructionOperands.MoveRegisterToDirectAddress => $"{Type} [{Displacement}], {SourceRegister.GetName()}",
+        InstructionOperands.MoveDirectAddressToRegister => $"{Type} {DestinationRegister.GetName()}, [{Displacement}]",
+        InstructionOperands.MoveDirectAddressToAccumulator8 => $"{Type} AL, [{Displacement}]",
+        InstructionOperands.MoveDirectAddressToAccumulator16 => $"{Type} AX, [{Displacement}]",
+        InstructionOperands.MoveAccumulator8ToDirectAddress => $"{Type} [{Displacement}], AL",
+        InstructionOperands.MoveAccumulator16ToDirectAddress => $"{Type} [{Displacement}], AX",
         _ => throw new ArgumentOutOfRangeException()
     };
 
