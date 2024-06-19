@@ -57,106 +57,56 @@
 
             var interpretedMovMode = InterpretMovMode(mod, rm);
 
-            return (isWide, isDestinationInRegField, interpretedMovMode) switch
+            return (isDestinationInRegField, interpretedMovMode) switch
             {
-                (true, false, { Type: InterpretedMovModeType.Register }) => new()
+                (false, { Type: InterpretedMovModeType.Register }) => new()
                 {
-                    Type = InstructionType.MoveRegisterToRegister16,
-                    DestinationRegister16 = ToEnum<Register16>(rm),
-                    SourceRegister16 = ToEnum<Register16>(reg),
+                    Type = InstructionType.MoveRegisterToRegister,
+                    DestinationRegister = new(isWide, rm),
+                    SourceRegister = new(isWide, reg),
                 },
-                (true, true, { Type: InterpretedMovModeType.Register }) => new()
+                (true, { Type: InterpretedMovModeType.Register }) => new()
                 {
-                    Type = InstructionType.MoveRegisterToRegister16,
-                    DestinationRegister16 = ToEnum<Register16>(reg),
-                    SourceRegister16 = ToEnum<Register16>(rm),
+                    Type = InstructionType.MoveRegisterToRegister,
+                    DestinationRegister = new(isWide, reg),
+                    SourceRegister = new(isWide, rm),
                 },
-                (false, false, { Type: InterpretedMovModeType.Register }) => new()
+                (true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
-                    Type = InstructionType.MoveRegisterToRegister8,
-                    DestinationRegister8 = ToEnum<Register8>(rm),
-                    SourceRegister8 = ToEnum<Register8>(reg),
-                },
-                (false, true, { Type: InterpretedMovModeType.Register }) => new()
-                {
-                    Type = InstructionType.MoveRegisterToRegister8,
-                    DestinationRegister8 = ToEnum<Register8>(reg),
-                    SourceRegister8 = ToEnum<Register8>(rm),
-                },
-                (true, true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
-                {
-                    Type = InstructionType.MoveMemoryToRegister16,
-                    DestinationRegister16 = ToEnum<Register16>(reg),
+                    Type = InstructionType.MoveMemoryToRegister,
+                    DestinationRegister = new(isWide, reg),
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                 },
-                (false, true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
+                (false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
-                    Type = InstructionType.MoveMemoryToRegister8,
-                    DestinationRegister8 = ToEnum<Register8>(reg),
+                    Type = InstructionType.MoveRegisterToMemory,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
+                    SourceRegister= new(isWide, reg),
                 },
-                (true, false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
+                (true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveRegister16ToMemory,
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                    SourceRegister16 = ToEnum<Register16>(reg),
-                },
-                (false, false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
-                {
-                    Type = InstructionType.MoveRegister8ToMemory,
-                    SourceRegister8 = ToEnum<Register8>(reg),
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                },
-                (true, true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MoveMemoryToRegister16WithDisplacement,
-                    DestinationRegister16 = ToEnum<Register16>(reg),
+                    Type = InstructionType.MoveMemoryToRegisterWithDisplacement,
+                    DestinationRegister = new(isWide, reg),
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     Displacement = displacement,
                 },
-                (false, true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
+                (false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveMemoryToRegister8WithDisplacement,
-                    DestinationRegister8 = ToEnum<Register8>(reg),
+                    Type = InstructionType.MoveRegisterToMemoryWithDisplacement,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
+                    SourceRegister = new(isWide, reg),
                     Displacement = displacement,
                 },
-                (true, false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
+                (true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveRegister16ToMemoryWithDisplacement,
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                    SourceRegister16 = ToEnum<Register16>(reg),
+                    Type = InstructionType.MoveDirectAddressToRegister,
+                    DestinationRegister= new(isWide, reg),
                     Displacement = displacement,
                 },
-                (false, false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
+                (false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
                 {
-                    Type = InstructionType.MoveRegister8ToMemoryWithDisplacement,
-                    SourceRegister8 = ToEnum<Register8>(reg),
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                    Displacement = displacement,
-                },
-                (true, true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MoveDirectAddressToRegister16,
-                    DestinationRegister16 = ToEnum<Register16>(reg),
-                    Displacement = displacement,
-                },
-                (false, true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MoveDirectAddressToRegister8,
-                    DestinationRegister8 = ToEnum<Register8>(reg),
-                    Displacement = displacement,
-                },
-                (true, false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MoveRegister16ToDirectAddress,
-                    SourceRegister16 = ToEnum<Register16>(reg),
-                    Displacement = displacement,
-                },
-                (false, false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MoveRegister8ToDirectAddress,
-                    SourceRegister8 = ToEnum<Register8>(reg),
+                    Type = InstructionType.MoveRegisterToDirectAddress,
+                    SourceRegister = new(isWide, reg),
                     Displacement = displacement,
                 },
                 _ => throw new(),
@@ -167,24 +117,12 @@
             var reg = GetBits(0, 3, byte1);
             var isWide = GetBit(3, byte1);
             var data = isWide ? ParseSignedWord() : ParseSignedByte();
-            if (isWide)
+            return new()
             {
-                return new()
-                {
-                    Type = InstructionType.MoveImmediateToRegister16,
-                    DestinationRegister16 = ToEnum<Register16>(reg),
-                    Immediate = data,
-                };
-            }
-            else
-            {
-                return new()
-                {
-                    Type = InstructionType.MoveImmediateToRegister8,
-                    DestinationRegister8 = ToEnum<Register8>(reg),
-                    Immediate = data,
-                };
-            }
+                Type = InstructionType.MoveImmediateToRegister,
+                DestinationRegister = new(isWide, reg),
+                Immediate = data,
+            };
         }
         else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.MoveImmediateToRegisterOrMemory)
         {
@@ -201,9 +139,9 @@
             {
                 (false, { Type: InterpretedMovModeType.Register }) => new()
                 {
-                    Type = InstructionType.MoveImmediateToRegister8,
+                    Type = InstructionType.MoveImmediateToRegister,
                     Immediate = data,
-                    DestinationRegister8 = ToEnum<Register8>(rm),
+                    DestinationRegister = new(isWide, rm),
                 },
                 (false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
@@ -226,9 +164,9 @@
                 },
                 (true, { Type: InterpretedMovModeType.Register }) => new()
                 {
-                    Type = InstructionType.MoveImmediateToRegister16,
+                    Type = InstructionType.MoveImmediateToRegister,
                     Immediate = data,
-                    DestinationRegister16 = ToEnum<Register16>(rm),
+                    DestinationRegister = new(isWide, rm),
                 },
                 (true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
