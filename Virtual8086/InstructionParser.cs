@@ -62,35 +62,35 @@
                 (false, { Type: InterpretedMovModeType.Register }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveRegisterToRegister,
+                    Operands = InstructionOperands.RegisterToRegister,
                     DestinationRegister = new(isWide, rm),
                     SourceRegister = new(isWide, reg),
                 },
                 (true, { Type: InterpretedMovModeType.Register }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveRegisterToRegister,
+                    Operands = InstructionOperands.RegisterToRegister,
                     DestinationRegister = new(isWide, reg),
                     SourceRegister = new(isWide, rm),
                 },
                 (true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveMemoryToRegister,
+                    Operands = InstructionOperands.MemoryToRegister,
                     DestinationRegister = new(isWide, reg),
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                 },
                 (false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveRegisterToMemory,
+                    Operands = InstructionOperands.RegisterToMemory,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     SourceRegister= new(isWide, reg),
                 },
                 (true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveMemoryToRegisterWithDisplacement,
+                    Operands = InstructionOperands.MemoryToRegisterWithDisplacement,
                     DestinationRegister = new(isWide, reg),
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     Displacement = displacement,
@@ -98,7 +98,7 @@
                 (false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveRegisterToMemoryWithDisplacement,
+                    Operands = InstructionOperands.RegisterToMemoryWithDisplacement,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     SourceRegister = new(isWide, reg),
                     Displacement = displacement,
@@ -106,14 +106,14 @@
                 (true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveDirectAddressToRegister,
+                    Operands = InstructionOperands.DirectAddressToRegister,
                     DestinationRegister= new(isWide, reg),
                     Displacement = displacement,
                 },
                 (false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveRegisterToDirectAddress,
+                    Operands = InstructionOperands.RegisterToDirectAddress,
                     SourceRegister = new(isWide, reg),
                     Displacement = displacement,
                 },
@@ -128,7 +128,7 @@
             return new()
             {
                 Type = InstructionType.MOV,
-                Operands = InstructionOperands.MoveImmediateToRegister,
+                Operands = InstructionOperands.ImmediateToRegister,
                 DestinationRegister = new(isWide, reg),
                 Immediate = data,
             };
@@ -149,21 +149,21 @@
                 (false, { Type: InterpretedMovModeType.Register }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveImmediateToRegister,
+                    Operands = InstructionOperands.ImmediateToRegister,
                     Immediate = data,
                     DestinationRegister = new(isWide, rm),
                 },
                 (false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveImmediate8ToMemory,
+                    Operands = InstructionOperands.Immediate8ToMemory,
                     Immediate = data,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                 },
                 (false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveImmediate8ToMemoryWithDisplacement,
+                    Operands = InstructionOperands.Immediate8ToMemoryWithDisplacement,
                     Immediate = data,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     Displacement = displacement,
@@ -171,28 +171,28 @@
                 (false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveImmediate8ToDirectAddress,
+                    Operands = InstructionOperands.Immediate8ToDirectAddress,
                     Immediate = data,
                     Displacement = displacement,
                 },
                 (true, { Type: InterpretedMovModeType.Register }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveImmediateToRegister,
+                    Operands = InstructionOperands.ImmediateToRegister,
                     Immediate = data,
                     DestinationRegister = new(isWide, rm),
                 },
                 (true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveImmediate16ToMemory,
+                    Operands = InstructionOperands.Immediate16ToMemory,
                     Immediate = data,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                 },
                 (true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveImmediate16ToMemoryWithDisplacement,
+                    Operands = InstructionOperands.Immediate16ToMemoryWithDisplacement,
                     Immediate = data,
                     Address = ToEnum<EffectiveAddressCalculation>(rm),
                     Displacement = displacement,
@@ -200,7 +200,7 @@
                 (true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
                 {
                     Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MoveImmediate16ToDirectAddress,
+                    Operands = InstructionOperands.Immediate16ToDirectAddress,
                     Immediate = data,
                     Displacement = displacement,
                 },
@@ -214,7 +214,7 @@
             return new()
             {
                 Type = InstructionType.MOV,
-                Operands = isWide ? InstructionOperands.MoveDirectAddressToAccumulator16 : InstructionOperands.MoveDirectAddressToAccumulator8,
+                Operands = isWide ? InstructionOperands.DirectAddressToAccumulator16 : InstructionOperands.DirectAddressToAccumulator8,
                 Displacement = address,
             };
         }
@@ -225,7 +225,7 @@
             return new()
             {
                 Type = InstructionType.MOV,
-                Operands = isWide ? InstructionOperands.MoveAccumulator16ToDirectAddress : InstructionOperands.MoveAccumulator8ToDirectAddress,
+                Operands = isWide ? InstructionOperands.Accumulator16ToDirectAddress : InstructionOperands.Accumulator8ToDirectAddress,
                 Displacement = address,
             };
         }
