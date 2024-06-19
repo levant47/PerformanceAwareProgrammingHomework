@@ -1,16 +1,22 @@
 ﻿public enum InstructionOpcode : byte
 {
-    MoveRegisterMemoryToFromMemory = 0b100010,
+    MoveRegisterOrMemoryToOrFromMemory = 0b100010,
     MoveImmediateToRegister = 0b1011,
     MoveImmediateToRegisterOrMemory = 0b1100011,
     MoveMemoryToAccumulator = 0b1010000,
     MoveAccumulatorToMemory = 0b1010001,
+    AddRegisterOrMemoryWithRegisterToEither = 0b000000,
+    AddOrSubtractImmediateToRegisterOrMemory = 0b100000,
+    AddImmediateToAccumulator = 0b0000010,
+    SubtractRegisterOrMemoryAndRegisterToEither = 0b001010,
+    SubtractImmediateFromAccumulator = 0b0010110,
 }
 
 public enum InstructionType
 {
     MOV,
     ADD,
+    SUB,
 }
 
 public enum InstructionOperands : byte

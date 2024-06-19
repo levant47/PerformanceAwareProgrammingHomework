@@ -44,81 +44,13 @@
 
     private Instruction ParseInstruction()
     {
+        var result = new Instruction();
+
         var byte1 = Next();
-        if (GetBits(2, 8, byte1) == (byte)InstructionOpcode.MoveRegisterMemoryToFromMemory)
+        if (GetBits(2, 8, byte1) == (byte)InstructionOpcode.MoveRegisterOrMemoryToOrFromMemory)
         {
-            var isDestinationInRegField = GetBit(1, byte1);
-            var isWide = GetBit(0, byte1);
-
-            var byte2 = Next();
-            var mod = ToEnum<MovMode>(GetBits(6, 8, byte2));
-            var reg = GetBits(3, 6, byte2);
-            var rm = GetBits(0, 3, byte2);
-
-            var interpretedMovMode = InterpretMovMode(mod, rm);
-
-            return (isDestinationInRegField, interpretedMovMode) switch
-            {
-                (false, { Type: InterpretedMovModeType.Register }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.RegisterToRegister,
-                    DestinationRegister = new(isWide, rm),
-                    SourceRegister = new(isWide, reg),
-                },
-                (true, { Type: InterpretedMovModeType.Register }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.RegisterToRegister,
-                    DestinationRegister = new(isWide, reg),
-                    SourceRegister = new(isWide, rm),
-                },
-                (true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MemoryToRegister,
-                    DestinationRegister = new(isWide, reg),
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                },
-                (false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.RegisterToMemory,
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                    SourceRegister= new(isWide, reg),
-                },
-                (true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.MemoryToRegisterWithDisplacement,
-                    DestinationRegister = new(isWide, reg),
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                    Displacement = displacement,
-                },
-                (false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.RegisterToMemoryWithDisplacement,
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                    SourceRegister = new(isWide, reg),
-                    Displacement = displacement,
-                },
-                (true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.DirectAddressToRegister,
-                    DestinationRegister= new(isWide, reg),
-                    Displacement = displacement,
-                },
-                (false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.RegisterToDirectAddress,
-                    SourceRegister = new(isWide, reg),
-                    Displacement = displacement,
-                },
-                _ => throw new(),
-            };
+            result.Type = InstructionType.MOV;
+            ParseRegisterOrMemoryToOrFromMemory(byte1, ref result);
         }
         else if (GetBits(4, 8, byte1) == (byte)InstructionOpcode.MoveImmediateToRegister)
         {
@@ -135,77 +67,8 @@
         }
         else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.MoveImmediateToRegisterOrMemory)
         {
-            var isWide = GetBit(0, byte1);
-            var byte2 = Next();
-
-            var mod = ToEnum<MovMode>(GetBits(6, 8, byte2));
-            var rm = GetBits(0, 3, byte2);
-
-            var interpretedMovMode = InterpretMovMode(mod, rm);
-            var data = isWide ? ParseSignedWord() : ParseSignedByte();
-
-            return (isWide, interpretedMovMode) switch
-            {
-                (false, { Type: InterpretedMovModeType.Register }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.ImmediateToRegister,
-                    Immediate = data,
-                    DestinationRegister = new(isWide, rm),
-                },
-                (false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.Immediate8ToMemory,
-                    Immediate = data,
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                },
-                (false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.Immediate8ToMemoryWithDisplacement,
-                    Immediate = data,
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                    Displacement = displacement,
-                },
-                (false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.Immediate8ToDirectAddress,
-                    Immediate = data,
-                    Displacement = displacement,
-                },
-                (true, { Type: InterpretedMovModeType.Register }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.ImmediateToRegister,
-                    Immediate = data,
-                    DestinationRegister = new(isWide, rm),
-                },
-                (true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.Immediate16ToMemory,
-                    Immediate = data,
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                },
-                (true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.Immediate16ToMemoryWithDisplacement,
-                    Immediate = data,
-                    Address = ToEnum<EffectiveAddressCalculation>(rm),
-                    Displacement = displacement,
-                },
-                (true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }) => new()
-                {
-                    Type = InstructionType.MOV,
-                    Operands = InstructionOperands.Immediate16ToDirectAddress,
-                    Immediate = data,
-                    Displacement = displacement,
-                },
-                _ => throw new()
-            };
+            result.Type = InstructionType.MOV;
+            ParseImmediateToRegisterOrMemory(isWide: GetBit(0, byte1), byte2: Next(), ref result);
         }
         else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.MoveMemoryToAccumulator)
         {
@@ -229,7 +92,190 @@
                 Displacement = address,
             };
         }
+        else if (GetBits(2, 8, byte1) == (byte)InstructionOpcode.AddRegisterOrMemoryWithRegisterToEither)
+        {
+            result.Type = InstructionType.ADD;
+            ParseRegisterOrMemoryToOrFromMemory(byte1, ref result);
+        }
+        else if (GetBits(2, 8, byte1) == (byte)InstructionOpcode.AddOrSubtractImmediateToRegisterOrMemory)
+        {
+            var byte2 = Next();
+            var secondOpcode = GetBits(2, 5, byte2);
+            result.Type = secondOpcode == 101 ? InstructionType.SUB : InstructionType.ADD;
+            ParseImmediateToRegisterOrMemory(isWide: GetBit(0, byte1) && !GetBit(1, byte1), byte2, ref result);
+        }
+        else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.AddImmediateToAccumulator)
+        {
+            result.Type = InstructionType.ADD;
+            var isWide = GetBit(0, byte1);
+            result.Operands = InstructionOperands.ImmediateToRegister;
+            result.Immediate = isWide ? ParseSignedWord() : ParseSignedByte();
+            result.DestinationRegister = new(isWide, isWide ? (byte)Register8.AL : (byte)Register16.AX);
+        }
+        else if (GetBits(2, 8, byte1) == (byte)InstructionOpcode.SubtractRegisterOrMemoryAndRegisterToEither)
+        {
+            result.Type = InstructionType.SUB;
+            ParseRegisterOrMemoryToOrFromMemory(byte1, ref result);
+        }
+        else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.SubtractImmediateFromAccumulator)
+        {
+            result.Type = InstructionType.SUB;
+            var isWide = GetBit(0, byte1);
+            result.Operands = InstructionOperands.ImmediateToRegister;
+            result.Immediate = isWide ? ParseSignedWord() : ParseSignedByte();
+            result.DestinationRegister = new(isWide, isWide ? (byte)Register8.AL : (byte)Register16.AX);
+        }
         else { throw new($"Unrecognized beginning of an instruction: {Convert.ToString(byte1, 2).PadLeft(8, '0')}"); }
+
+        return result;
+    }
+
+    private void ParseRegisterOrMemoryToOrFromMemory(byte byte1, ref Instruction result)
+    {
+        var isDestinationInRegField = GetBit(1, byte1);
+        var isWide = GetBit(0, byte1);
+
+        var byte2 = Next();
+        var mod = ToEnum<MovMode>(GetBits(6, 8, byte2));
+        var reg = GetBits(3, 6, byte2);
+        var rm = GetBits(0, 3, byte2);
+
+        var interpretedMovMode = InterpretMovMode(mod, rm);
+
+        switch (isDestinationInRegField, interpretedMovMode)
+        {
+            case (false, { Type: InterpretedMovModeType.Register }):
+            {
+                result.Operands = InstructionOperands.RegisterToRegister;
+                result.DestinationRegister = new(isWide, rm);
+                result.SourceRegister = new(isWide, reg);
+                break;
+            }
+            case (true, { Type: InterpretedMovModeType.Register }):
+            {
+                result.Operands = InstructionOperands.RegisterToRegister;
+                result.DestinationRegister = new(isWide, reg);
+                result.SourceRegister = new(isWide, rm);
+                break;
+            }
+            case (true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }):
+            {
+                result.Operands = InstructionOperands.MemoryToRegister;
+                result.DestinationRegister = new(isWide, reg);
+                result.Address = ToEnum<EffectiveAddressCalculation>(rm);
+                break;
+            }
+            case (false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }):
+            {
+                result.Operands = InstructionOperands.RegisterToMemory;
+                result.Address = ToEnum<EffectiveAddressCalculation>(rm);
+                result.SourceRegister= new(isWide, reg);
+                break;
+            }
+            case (true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }):
+            {
+                result.Operands = InstructionOperands.MemoryToRegisterWithDisplacement;
+                result.DestinationRegister = new(isWide, reg);
+                result.Address = ToEnum<EffectiveAddressCalculation>(rm);
+                result.Displacement = displacement;
+                break;
+            }
+            case (false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }):
+            {
+                result.Operands = InstructionOperands.RegisterToMemoryWithDisplacement;
+                result.Address = ToEnum<EffectiveAddressCalculation>(rm);
+                result.SourceRegister = new(isWide, reg);
+                result.Displacement = displacement;
+                break;
+            }
+            case (true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }):
+            {
+                result.Operands = InstructionOperands.DirectAddressToRegister;
+                result.DestinationRegister= new(isWide, reg);
+                result.Displacement = displacement;
+                break;
+            }
+            case (false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }):
+            {
+                result.Operands = InstructionOperands.RegisterToDirectAddress;
+                result.SourceRegister = new(isWide, reg);
+                result.Displacement = displacement;
+                break;
+            }
+            default: throw new();
+        };
+    }
+
+    private void ParseImmediateToRegisterOrMemory(bool isWide, byte byte2, ref Instruction result)
+    {
+        var mod = ToEnum<MovMode>(GetBits(6, 8, byte2));
+        var rm = GetBits(0, 3, byte2);
+
+        var interpretedMovMode = InterpretMovMode(mod, rm);
+        var data = isWide ? ParseSignedWord() : ParseSignedByte();
+
+        switch (isWide, interpretedMovMode)
+        {
+            case (false, { Type: InterpretedMovModeType.Register }):
+            {
+                result.Operands = InstructionOperands.ImmediateToRegister;
+                result.Immediate = data;
+                result.DestinationRegister = new(isWide, rm);
+                break;
+            }
+            case (false, { Type: InterpretedMovModeType.AddressWithNoDisplacement }):
+            {
+                result.Operands = InstructionOperands.Immediate8ToMemory;
+                result.Immediate = data;
+                result.Address = ToEnum<EffectiveAddressCalculation>(rm);
+                break;
+            }
+            case (false, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }):
+            {
+                result.Operands = InstructionOperands.Immediate8ToMemoryWithDisplacement;
+                result.Immediate = data;
+                result.Address = ToEnum<EffectiveAddressCalculation>(rm);
+                result.Displacement = displacement;
+                break;
+            }
+            case (false, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }):
+            {
+                result.Operands = InstructionOperands.Immediate8ToDirectAddress;
+                result.Immediate = data;
+                result.Displacement = displacement;
+                break;
+            }
+            case (true, { Type: InterpretedMovModeType.Register }):
+            {
+                result.Operands = InstructionOperands.ImmediateToRegister;
+                result.Immediate = data;
+                result.DestinationRegister = new(isWide, rm);
+                break;
+            }
+            case (true, { Type: InterpretedMovModeType.AddressWithNoDisplacement }):
+            {
+                result.Operands = InstructionOperands.Immediate16ToMemory;
+                result.Immediate = data;
+                result.Address = ToEnum<EffectiveAddressCalculation>(rm);
+                break;
+            }
+            case (true, { Type: InterpretedMovModeType.AddressWithDisplacement, Displacement: var displacement }):
+            {
+                result.Operands = InstructionOperands.Immediate16ToMemoryWithDisplacement;
+                result.Immediate = data;
+                result.Address = ToEnum<EffectiveAddressCalculation>(rm);
+                result.Displacement = displacement;
+                break;
+            }
+            case (true, { Type: InterpretedMovModeType.DirectAddress, Displacement: var displacement }):
+            {
+                result.Operands = InstructionOperands.Immediate16ToDirectAddress;
+                result.Immediate = data;
+                result.Displacement = displacement;
+                break;
+            }
+            default: throw new();
+        };
     }
 
     private InterpretedMovMode InterpretMovMode(MovMode mod, byte rm) => (mod, rm) switch
@@ -258,5 +304,4 @@
         var mask = 0b11111111 >> (8 - endIndex);
         return (byte)((value & mask) >> startIndex);
     }
-
 }
