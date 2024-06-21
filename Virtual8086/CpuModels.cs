@@ -6,10 +6,12 @@
     MoveMemoryToAccumulator = 0b1010000,
     MoveAccumulatorToMemory = 0b1010001,
     AddRegisterOrMemoryWithRegisterToEither = 0b000000,
-    AddOrSubtractImmediateToRegisterOrMemory = 0b100000,
+    AddOrSubtractOrCompareImmediateToRegisterOrMemory = 0b100000,
     AddImmediateToAccumulator = 0b0000010,
     SubtractRegisterOrMemoryAndRegisterToEither = 0b001010,
     SubtractImmediateFromAccumulator = 0b0010110,
+    CompareRegisterOrMemoryWithRegister = 0b001110,
+    CompareImmediateWithAccumulator = 0b0011110,
 }
 
 public enum InstructionType
@@ -17,6 +19,7 @@ public enum InstructionType
     MOV,
     ADD,
     SUB,
+    CMP,
 }
 
 public enum InstructionOperands : byte

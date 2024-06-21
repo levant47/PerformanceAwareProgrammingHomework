@@ -26,7 +26,11 @@
         var result = new List<Instruction>();
         while (!parser.IsDone())
         {
-            try { result.Add(parser.ParseInstruction()); }
+            try
+            {
+                var newInstruction = parser.ParseInstruction();
+                result.Add(newInstruction);
+            }
             catch (Exception exception)
             { throw new($"Encountered an error parsing byte {parser._i}: {exception.Message}"); }
         }
@@ -97,12 +101,18 @@
             result.Type = InstructionType.ADD;
             ParseRegisterOrMemoryToOrFromMemory(byte1, ref result);
         }
-        else if (GetBits(2, 8, byte1) == (byte)InstructionOpcode.AddOrSubtractImmediateToRegisterOrMemory)
+        else if (GetBits(2, 8, byte1) == (byte)InstructionOpcode.AddOrSubtractOrCompareImmediateToRegisterOrMemory)
         {
             var byte2 = Next();
-            var secondOpcode = GetBits(2, 5, byte2);
-            result.Type = secondOpcode == 101 ? InstructionType.SUB : InstructionType.ADD;
-            ParseImmediateToRegisterOrMemory(isWide: GetBit(0, byte1) && !GetBit(1, byte1), byte2, ref result);
+            var secondOpcode = GetBits(3, 6, byte2);
+            result.Type = secondOpcode switch
+            {
+                0b000 => InstructionType.ADD,
+                0b101 => InstructionType.SUB,
+                0b111 => InstructionType.CMP,
+                _ => throw new(),
+            };
+            ParseImmediateToRegisterOrMemory(isWide: GetBit(0, byte1), byte2, ref result, registerIsWideButImmediateIs8Bit: GetBit(1, byte1));
         }
         else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.AddImmediateToAccumulator)
         {
@@ -124,6 +134,19 @@
             result.Operands = InstructionOperands.ImmediateToRegister;
             result.Immediate = isWide ? ParseSignedWord() : ParseSignedByte();
             result.DestinationRegister = new(isWide, isWide ? (byte)Register8.AL : (byte)Register16.AX);
+        }
+        else if (GetBits(2, 8, byte1) == (byte)InstructionOpcode.CompareRegisterOrMemoryWithRegister)
+        {
+            result.Type = InstructionType.CMP;
+            ParseRegisterOrMemoryToOrFromMemory(byte1, ref result);
+        }
+        else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.CompareImmediateWithAccumulator)
+        {
+            var isWide = GetBit(0, byte1);
+            result.Type = InstructionType.CMP;
+            result.Operands = InstructionOperands.ImmediateToRegister;
+            result.DestinationRegister = new(isWide, isWide ? (byte)Register16.AX : (byte)Register8.AL);
+            result.Immediate = isWide ? ParseSignedWord() : ParseSignedByte();
         }
         else { throw new($"Unrecognized beginning of an instruction: {Convert.ToString(byte1, 2).PadLeft(8, '0')}"); }
 
@@ -206,13 +229,13 @@
         };
     }
 
-    private void ParseImmediateToRegisterOrMemory(bool isWide, byte byte2, ref Instruction result)
+    private void ParseImmediateToRegisterOrMemory(bool isWide, byte byte2, ref Instruction result, bool registerIsWideButImmediateIs8Bit = false)
     {
         var mod = ToEnum<MovMode>(GetBits(6, 8, byte2));
         var rm = GetBits(0, 3, byte2);
 
         var interpretedMovMode = InterpretMovMode(mod, rm);
-        var data = isWide ? ParseSignedWord() : ParseSignedByte();
+        var data = isWide && !registerIsWideButImmediateIs8Bit ? ParseSignedWord() : ParseSignedByte();
 
         switch (isWide, interpretedMovMode)
         {
