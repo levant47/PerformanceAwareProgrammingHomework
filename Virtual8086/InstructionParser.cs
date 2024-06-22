@@ -48,7 +48,7 @@
 
     private Instruction ParseInstruction()
     {
-        var result = new Instruction();
+        var result = new Instruction { InstructionAddress = _i };
 
         var byte1 = Next();
         if (GetBits(2, 8, byte1) == (byte)InstructionOpcode.MoveRegisterOrMemoryToOrFromMemory)
@@ -61,13 +61,10 @@
             var reg = GetBits(0, 3, byte1);
             var isWide = GetBit(3, byte1);
             var data = isWide ? ParseSignedWord() : ParseSignedByte();
-            return new()
-            {
-                Type = InstructionType.MOV,
-                Operands = InstructionOperands.ImmediateToRegister,
-                DestinationRegister = new(isWide, reg),
-                Immediate = data,
-            };
+            result.Type = InstructionType.MOV;
+            result.Operands = InstructionOperands.ImmediateToRegister;
+            result.DestinationRegister = new(isWide, reg);
+            result.Immediate = data;
         }
         else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.MoveImmediateToRegisterOrMemory)
         {
@@ -78,23 +75,17 @@
         {
             var isWide = GetBit(0, byte1);
             var address = ParseSignedWord();
-            return new()
-            {
-                Type = InstructionType.MOV,
-                Operands = isWide ? InstructionOperands.DirectAddressToAccumulator16 : InstructionOperands.DirectAddressToAccumulator8,
-                Displacement = address,
-            };
+            result.Type = InstructionType.MOV;
+            result.Operands = isWide ? InstructionOperands.DirectAddressToAccumulator16 : InstructionOperands.DirectAddressToAccumulator8;
+            result.Displacement = address;
         }
         else if (GetBits(1, 8, byte1) == (byte)InstructionOpcode.MoveAccumulatorToMemory)
         {
             var isWide = GetBit(0, byte1);
             var address = ParseSignedWord();
-            return new()
-            {
-                Type = InstructionType.MOV,
-                Operands = isWide ? InstructionOperands.Accumulator16ToDirectAddress : InstructionOperands.Accumulator8ToDirectAddress,
-                Displacement = address,
-            };
+            result.Type = InstructionType.MOV;
+            result.Operands = isWide ? InstructionOperands.Accumulator16ToDirectAddress : InstructionOperands.Accumulator8ToDirectAddress;
+            result.Displacement = address;
         }
         else if (GetBits(2, 8, byte1) == (byte)InstructionOpcode.AddRegisterOrMemoryWithRegisterToEither)
         {
@@ -147,6 +138,13 @@
             result.Operands = InstructionOperands.ImmediateToRegister;
             result.DestinationRegister = new(isWide, isWide ? (byte)Register16.AX : (byte)Register8.AL);
             result.Immediate = isWide ? ParseSignedWord() : ParseSignedByte();
+        }
+        else if (JumpInstructionOpcodesToJumpTypeMap.TryGetValue((InstructionOpcode)byte1, out var jumpType))
+        {
+            result.Type = InstructionType.JMP;
+            result.JumpType = jumpType;
+            var jumpOffset = ParseSignedByte();
+            result.JumpAddress = _i + jumpOffset;
         }
         else { throw new($"Unrecognized beginning of an instruction: {Convert.ToString(byte1, 2).PadLeft(8, '0')}"); }
 

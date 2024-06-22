@@ -27,7 +27,7 @@
     private static int? Verify(string testBinaryPath)
     {
         var binarySource = File.ReadAllBytes(testBinaryPath);
-        var decoded = "bits 16\n" + string.Join('\n', InstructionParser.DecodeInstructions(binarySource));
+        var decoded = "bits 16\n" + SerializeInstructions(InstructionParser.DecodeInstructions(binarySource));
         var newCompiledFilename = Guid.NewGuid().ToString();
         var newSourceFilename = $"{newCompiledFilename}.asm";
         File.WriteAllText(newSourceFilename, decoded);

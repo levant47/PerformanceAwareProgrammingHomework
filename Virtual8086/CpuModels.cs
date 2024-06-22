@@ -12,6 +12,26 @@
     SubtractImmediateFromAccumulator = 0b0010110,
     CompareRegisterOrMemoryWithRegister = 0b001110,
     CompareImmediateWithAccumulator = 0b0011110,
+    JumpOnNotEqual = 0b01110101,
+    JumpOnEqual = 0b01110100,
+    JumpOnLess = 0b01111100,
+    JumpOnLessOrEqual = 0b01111110,
+    JumpOnBelow = 0b01110010,
+    JumpOnBelowOrEqual = 0b01110110,
+    JumpOnParity = 0b01111010,
+    JumpOnOverflow = 0b01110000,
+    JumpOnSign = 0b01111000,
+    JumpOnGreaterOrEqual = 0b01111101,
+    JumpOnGreater = 0b01111111,
+    JumpOnNotBelow = 0b01110011,
+    JumpOnAbove = 0b01110111,
+    JumpOnNotParity = 0b01111011,
+    JumpOnNotOverflow = 0b01110001,
+    JumpOnNotSign = 0b01111001,
+    JumpOnCxZero = 0b11100011,
+    Loop = 0b11100010,
+    LoopWhileZero = 0b11100001,
+    LoopWhileNotZero = 0b11100000,
 }
 
 public enum InstructionType
@@ -20,6 +40,58 @@ public enum InstructionType
     ADD,
     SUB,
     CMP,
+    JMP,
+}
+
+public enum JumpType
+{
+    JNE,
+    JE,
+    JL,
+    JLE,
+    JB,
+    JBE,
+    JP,
+    JO,
+    JS,
+    JGE,
+    JG,
+    JNB,
+    JA,
+    JNP,
+    JNO,
+    JNS,
+    JCXZ,
+    LOOP,
+    LOOPZ,
+    LOOPNZ,
+}
+
+public static class CpuModelsGlobals
+{
+    public static readonly Dictionary<InstructionOpcode, JumpType> JumpInstructionOpcodesToJumpTypeMap = new()
+    {
+        { InstructionOpcode.JumpOnNotEqual, JumpType.JNE },
+        { InstructionOpcode.JumpOnEqual, JumpType.JE },
+        { InstructionOpcode.JumpOnLess, JumpType.JL },
+        { InstructionOpcode.JumpOnLessOrEqual, JumpType.JLE },
+        { InstructionOpcode.JumpOnBelow, JumpType.JB },
+        { InstructionOpcode.JumpOnBelowOrEqual, JumpType.JBE },
+        { InstructionOpcode.JumpOnParity, JumpType.JP },
+        { InstructionOpcode.JumpOnOverflow, JumpType.JO },
+        { InstructionOpcode.JumpOnSign, JumpType.JS },
+        { InstructionOpcode.JumpOnGreaterOrEqual, JumpType.JGE },
+        { InstructionOpcode.JumpOnGreater, JumpType.JG },
+        { InstructionOpcode.JumpOnNotBelow, JumpType.JNB },
+        { InstructionOpcode.JumpOnAbove, JumpType.JA },
+        { InstructionOpcode.JumpOnNotParity, JumpType.JNP },
+        { InstructionOpcode.JumpOnNotOverflow, JumpType.JNO },
+        { InstructionOpcode.JumpOnNotSign, JumpType.JNS },
+        { InstructionOpcode.JumpOnCxZero, JumpType.JCXZ },
+        { InstructionOpcode.Loop, JumpType.LOOP },
+        { InstructionOpcode.LoopWhileZero, JumpType.LOOPZ },
+        { InstructionOpcode.LoopWhileNotZero, JumpType.LOOPNZ },
+    };
 }
 
 public enum InstructionOperands : byte
@@ -57,6 +129,7 @@ public struct Register
         else { Register8 = ToEnum<Register8>(register); }
     }
 
+    [Pure]
     public string GetName() => IsWide ? Register16.ToString() : Register8.ToString();
 }
 
@@ -99,46 +172,13 @@ public enum EffectiveAddressCalculation
 public struct Instruction
 {
     public InstructionType Type;
+    public int InstructionAddress;
+    public JumpType JumpType;
+    public int JumpAddress;
     public InstructionOperands Operands;
     public Register SourceRegister;
     public Register DestinationRegister;
     public EffectiveAddressCalculation Address;
     public short Immediate;
     public short Displacement;
-
-    public override string ToString() => Operands switch
-    {
-        InstructionOperands.RegisterToRegister => $"{Type} {DestinationRegister.GetName()}, {SourceRegister.GetName()}",
-        InstructionOperands.ImmediateToRegister => $"{Type} {DestinationRegister.GetName()}, {Immediate}",
-        InstructionOperands.MemoryToRegister => $"{Type} {DestinationRegister.GetName()}, [{EffectiveAddressCalculationToString(Address)}]",
-        InstructionOperands.RegisterToMemory => $"{Type} [{EffectiveAddressCalculationToString(Address)}], {SourceRegister.GetName()}",
-        InstructionOperands.MemoryToRegisterWithDisplacement => $"{Type} {DestinationRegister.GetName()}, [{EffectiveAddressCalculationToString(Address)} + {Displacement}]",
-        InstructionOperands.RegisterToMemoryWithDisplacement => $"{Type} [{EffectiveAddressCalculationToString(Address)} + {Displacement}], {SourceRegister.GetName()}",
-        InstructionOperands.Immediate8ToMemory => $"{Type} [{EffectiveAddressCalculationToString(Address)}], byte {Immediate}",
-        InstructionOperands.Immediate8ToMemoryWithDisplacement => $"{Type} [{EffectiveAddressCalculationToString(Address)} + {Displacement}], byte {Immediate}",
-        InstructionOperands.Immediate16ToMemory => $"{Type} [{EffectiveAddressCalculationToString(Address)}], word {Immediate}",
-        InstructionOperands.Immediate16ToMemoryWithDisplacement => $"{Type} [{EffectiveAddressCalculationToString(Address)} + {Displacement}], word {Immediate}",
-        InstructionOperands.Immediate8ToDirectAddress => $"{Type} [{Displacement}], byte {Immediate}",
-        InstructionOperands.Immediate16ToDirectAddress => $"{Type} [{Displacement}], word {Immediate}",
-        InstructionOperands.RegisterToDirectAddress => $"{Type} [{Displacement}], {SourceRegister.GetName()}",
-        InstructionOperands.DirectAddressToRegister => $"{Type} {DestinationRegister.GetName()}, [{Displacement}]",
-        InstructionOperands.DirectAddressToAccumulator8 => $"{Type} AL, [{Displacement}]",
-        InstructionOperands.DirectAddressToAccumulator16 => $"{Type} AX, [{Displacement}]",
-        InstructionOperands.Accumulator8ToDirectAddress => $"{Type} [{Displacement}], AL",
-        InstructionOperands.Accumulator16ToDirectAddress => $"{Type} [{Displacement}], AX",
-        _ => throw new ArgumentOutOfRangeException()
-    };
-
-    private static string EffectiveAddressCalculationToString(EffectiveAddressCalculation address) => address switch
-    {
-        EffectiveAddressCalculation.BxSi => "BX + SI",
-        EffectiveAddressCalculation.BxDi => "BX + DI",
-        EffectiveAddressCalculation.BpSi => "BP + SI",
-        EffectiveAddressCalculation.BpDi => "BP + DI",
-        EffectiveAddressCalculation.Si => "SI",
-        EffectiveAddressCalculation.Di => "DI",
-        EffectiveAddressCalculation.Bp => "BP",
-        EffectiveAddressCalculation.Bx => "BX",
-        _ => throw new(),
-    };
 }
